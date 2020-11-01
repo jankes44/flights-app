@@ -36,7 +36,7 @@ router.get("/:from/:to", function (req, res, next) {
   res.json(result);
 });
 
-router.get("/avg-travel-time/:from/:to", function (req, res, next) {
+router.get("/travel-time/:from/:to", function (req, res, next) {
   const from = req.params.from;
   const to = req.params.to;
 
