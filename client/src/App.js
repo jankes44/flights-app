@@ -6,12 +6,29 @@ import Table from "./components/Table/Table";
 
 export default function App() {
   const [flights, setFlights] = useState([]);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [avgTime, setAvgTime] = useState(null);
+  const [from, setFrom] = useState("LHR");
+  const [to, setTo] = useState("DXB");
   const [iata, setIata] = useState([]);
 
   const handleChange = (event) => {
     this.setState({ value: event.target.value });
+  };
+
+  const avgJourneyTime = () => {
+    axios
+      .get(
+        `${
+          global.BASE_URL
+        }/api/flights/average-journey-time/${from.toUpperCase()}/${to.toUpperCase()}`
+      )
+      .then((res) => {
+        console.log(res);
+        setAvgTime(res.data.averagetime);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const checkFlights = () => {
@@ -23,6 +40,7 @@ export default function App() {
       )
       .then((res) => {
         console.log(res);
+        avgJourneyTime();
         setFlights(res.data);
       })
       .catch((err) => {
@@ -32,21 +50,16 @@ export default function App() {
 
   useEffect(() => {
     //get-example-flights
-    axios
-      .get(`${global.BASE_URL}/api/flights/travel-time/MAN/DXB`)
-      .then((res) => {
-        console.log(res);
-        setFlights(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
 
     axios
       .get(`${global.BASE_URL}/api/flights/iata`)
       .then((res) => {
         console.log(res);
+
+        setFrom(res.data.find((el) => el === "LHR"));
+        setTo(res.data.find((el) => el === "DXB"));
         setIata(res.data);
+        checkFlights();
       })
       .catch((err) => {
         console.error(err);
@@ -69,6 +82,7 @@ export default function App() {
                 : null}
             </select>
           </div>
+
           <div className="float-left">
             <label>To</label>
             <select value={to} onChange={(e) => setTo(e.target.value)}>
@@ -83,6 +97,13 @@ export default function App() {
           </div>
           <button onClick={checkFlights}>FIND FLIGHTS</button>
         </div>
+        {avgTime && flights.length ? (
+          <h4>
+            Average journey time from {flights[0].depair} to{" "}
+            {flights[0].destair} is {(avgTime / 60).toFixed(0)}h{" "}
+            {(avgTime % 60).toFixed(0)}m
+          </h4>
+        ) : null}
         {flights ? <Table data={flights} /> : null}
 
         {/* <p>carrier - departure - destination - depart date/time</p>
