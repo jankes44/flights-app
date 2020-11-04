@@ -1,7 +1,10 @@
 /* DivTable.com */
 .divTable {
   display: table;
-  width: 100%;
+  width: 90vw;
+  font-size: 1vw;
+  margin-left: auto;
+  margin-right: auto;
 }
 .divTableRow {
   display: table-row;

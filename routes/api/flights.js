@@ -45,41 +45,77 @@ const formatTravelTime = async (journeys) => {
 
     //format date and time then use moment js to format it to standard timestamp to perform calculations
     journeys.forEach((el) => {
-      //concatenate date and time to get datetime variables
+      //format "out" flights
       let outDepartDate = el.outdepartdate + " ";
       let outDepartTime = el.outdeparttime;
-      let departDateTime = moment(outDepartDate.concat(outDepartTime)).format(
-        "DD/MM/YYYY HH:mm:ss"
-      );
+      let outDepartDateTime = moment(
+        outDepartDate.concat(outDepartTime)
+      ).format("DD/MM/YYYY HH:mm:ss");
 
       //convert datetime to utc
-      var departutc = moment.tz(
-        departDateTime,
+      var outdepartutc = moment.tz(
+        outDepartDateTime,
         "DD/MM/YYYY HH:mm:ss",
         el.deptz //timezone
       );
 
       let outArrivalDate = el.outarrivaldate + " ";
       let outArrivalTime = el.outarrivaltime;
-      let arrivalDateTime = moment(
+      let outArrivalDateTime = moment(
         outArrivalDate.concat(outArrivalTime)
       ).format("DD/MM/YYYY HH:mm:ss");
 
       //convert datetime to utc
-      var arrivalutc = moment.tz(
-        arrivalDateTime,
+      var outarrivalutc = moment.tz(
+        outArrivalDateTime,
         "DD/MM/YYYY HH:mm:ss",
         el.desttz
       );
 
-      //use moment JS to help format the duration
-      var duration = moment.duration(arrivalutc.diff(departutc));
-      var minutes = duration.asMinutes();
-      //calculate duration
+      //check if there is return flights
+      if (el.inarrivaldate !== "" && el.inarrivalcode !== "") {
+        //format "in" flights
+        let inDepartDate = el.indepartdate + " ";
+        let inDepartTime = el.indeparttime;
+        let inDepartDateTime = moment(inDepartDate.concat(inDepartTime)).format(
+          "DD/MM/YYYY HH:mm:ss"
+        );
 
-      el.journeytime = minutes;
-      el.departutc = departutc;
-      el.arrivalutc = arrivalutc;
+        //convert datetime to utc
+        var indepartutc = moment.tz(
+          inDepartDateTime,
+          "DD/MM/YYYY HH:mm:ss",
+          el.indeparttz //timezone
+        );
+
+        let inArrivalDate = el.inarrivaldate + " ";
+        let inArrivalTime = el.inarrivaltime;
+        let inArrivalDateTime = moment(
+          inArrivalDate.concat(inArrivalTime)
+        ).format("DD/MM/YYYY HH:mm:ss");
+
+        //convert datetime to utc
+        var inarrivalutc = moment.tz(
+          inArrivalDateTime,
+          "DD/MM/YYYY HH:mm:ss",
+          el.deptz
+        );
+        var induration = moment.duration(inarrivalutc.diff(indepartutc));
+        var inminutes = induration.asMinutes();
+        //in assign to JSON data elements
+        el.injourneytime = inminutes;
+        el.indepartutc = indepartutc;
+        el.inarrivalutc = inarrivalutc;
+      }
+      //use moment JS to help format the duration to minutes
+      var outduration = moment.duration(outarrivalutc.diff(outdepartutc));
+      var outminutes = outduration.asMinutes();
+
+      //out assign to JSON data elements
+      el.outjourneytime = outminutes;
+      el.outdepartutc = outdepartutc;
+      el.outarrivalutc = outarrivalutc;
+
       journeysFormatted.push(el);
     });
     resolve(journeysFormatted);
@@ -91,7 +127,7 @@ const formatTravelTime = async (journeys) => {
 const averageTime = async (journeys) => {
   let promise = new Promise((resolve, reject) => {
     let durationsArray = [];
-    journeys.forEach((el) => durationsArray.push(el.journeytime));
+    journeys.forEach((el) => durationsArray.push(el.outjourneytime));
 
     let sum = 0;
     let avg = 0;
@@ -103,6 +139,18 @@ const averageTime = async (journeys) => {
     avg = sum / durationsArray.length;
 
     resolve(avg);
+  });
+  let result = await promise;
+  return result;
+};
+
+const proportionBusinessClass = async (journeys) => {
+  let promise = new Promise((resolve, reject) => {
+    let businessClassCount = 0;
+    journeys.forEach((el) => {
+      if (el.outflightclass === "Business") businessClassCount++;
+    });
+    resolve(businessClassCount);
   });
   let result = await promise;
   return result;
@@ -168,6 +216,44 @@ router.get("/departures-per-day/:from/:to", function (req, res, next) {
     return el.depair === from && el.destair === to;
   });
   calcDeparturesPerDay;
+});
+
+//get proportion of flights which are business class
+router.get("/proportion-business-class/:from/:to", function (req, res, next) {
+  const from = req.params.from;
+  const to = req.params.to;
+
+  const journeys = flights.filter((el) => {
+    return el.depair === from && el.destair === to;
+  });
+
+  proportionBusinessClass(journeys).then((result) => {
+    const outOf = journeys.length;
+    let percentage = (result * 100) / outOf;
+    res.json({
+      depair: req.params.from,
+      destair: req.params.to,
+      percentage: percentage,
+    });
+  });
+});
+
+//get proportion of flights which are business class
+router.get("/percentage-of-flights/:to", function (req, res, next) {
+  const to = req.params.to.toUpperCase();
+
+  let count = 0;
+  const outOf = flights.length;
+  flights.forEach((el) => {
+    if (el.destair === to) count++;
+  });
+  let percentage = (count * 100) / outOf;
+
+  console.log(percentage);
+  res.json({
+    destair: req.params.to,
+    percentagetotalflights: percentage,
+  });
 });
 
 /* GET IATA codes */
