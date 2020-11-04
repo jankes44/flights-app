@@ -12,15 +12,15 @@ Language: JavaScript
 Time spent: about 9 hours
 Packages used:
 -	Server
-  o	Express
-  o	Fast-csv
-  o	Moment/Moment-timezone
-  o	Concurrently
+  -	Express
+  -	Fast-csv
+  -	Moment/Moment-timezone
+  -	Concurrently
 -	Client
-  o	React
-  o	Bootstrap
-  o	Moment
-  o	Axios
+  -	React
+  -	Bootstrap
+  -	Moment
+  -	Axios
 Server endpoints /:from = departure airport code, /:to = destination airport code
 -	BASE_URL/journey/:from/:to – res: array of flights taking “depair” and “destair” (from and to)
 -	BASE_URL/travel-time/:from/:to – same as -||- but with formatted travel time and time zones of depaircode and destaircode
