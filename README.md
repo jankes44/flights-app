@@ -9,19 +9,24 @@ Requirements: (node JS, NPM)
 3.	In /flights-app/ run: ‘npm run demo’
 
 Language: JavaScript
-Time spent: about 9 hours
-Packages used: 
-  -Server
-  --	Express
+Time spent: about 9 hours\
+
+Packages used:
+
+Server
+  - Express
   -	Fast-csv
   -	Moment/Moment-timezone
-  -	Concurrently
-  Client
+  -	Concurrently\
+
+Client
   -	React
   -	Bootstrap
   -	Moment
   -	Axios
+  
 Server endpoints /:from = departure airport code, /:to = destination airport code
+
 -	BASE_URL/journey/:from/:to – res: array of flights taking “depair” and “destair” (from and to)
 -	BASE_URL/travel-time/:from/:to – same as -||- but with formatted travel time and time zones of depaircode and destaircode
 -	BASE_URL/average-journey-time/:from/:to – provides average journey time from – to (requirement 1)
@@ -32,6 +37,7 @@ Server endpoints /:from = departure airport code, /:to = destination airport cod
 
 
 Quick summary
+
 This quick technical test was pretty enjoyable. I tried new things which I did not have a chance to do before like converting two different times in 
 2 time zones and telling a difference between them, this was the most challenging for me to be honest, it took me a moment to figure it where to 
 get time zones data from, then parse it with existing data and calculate the difference between the departure times and arrival times in a correct way 
