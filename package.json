@@ -9,7 +9,7 @@
     "client-dependencies": "npm install --prefix client",
     "install-all-deps": "concurrently \"npm run server-dependencies\" \"npm run client-dependencies\"",
     "client": "npm start --prefix client",
-    "server": "nodemon index.js",
+    "server": "node ./bin/www",
     "demo": "concurrently \"npm run client\" \"npm run server\""
   },
   "dependencies": {

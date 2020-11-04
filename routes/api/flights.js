@@ -122,6 +122,7 @@ const formatTravelTime = async (journeys) => {
   return result;
 };
 
+//calculate average time of travel in the array
 const averageTime = async (journeys) => {
   let promise = new Promise((resolve, reject) => {
     let durationsArray = [];
@@ -142,6 +143,7 @@ const averageTime = async (journeys) => {
   return result;
 };
 
+//calculate proportion of business class journeys in the array
 const proportionBusinessClass = async (journeys) => {
   let promise = new Promise((resolve, reject) => {
     let businessClassCount = 0;
@@ -149,6 +151,75 @@ const proportionBusinessClass = async (journeys) => {
       if (el.outflightclass === "Business") businessClassCount++;
     });
     resolve(businessClassCount);
+  });
+  let result = await promise;
+  return result;
+};
+
+const busiestDay = async (journeys) => {
+  let promise = new Promise((resolve, reject) => {
+    //push the count of the same depair and indepartcode flights to an arrayOfFlights
+    let arrayOfDates = [];
+    journeys.forEach((el) => {
+      const length = journeys.filter(
+        (x) => x.outdepartdate === el.outdepartdate
+      ).length;
+      arrayOfDates.push({
+        depair: el.depair,
+        date: el.outdepartdate,
+        count: length,
+      });
+    });
+
+    console.log(
+      flights.filter(
+        (el) => el.outdepartdate === "2018-02-01" && el.depair === "LHR"
+      ).length
+    );
+
+    //get the biggest number from the arrayOfDates to get the busiest airport day /:from
+    var resultMaxNumber = Math.max.apply(
+      Math,
+      arrayOfDates.map(function (o) {
+        return o.count;
+      })
+    );
+    var resultObj = arrayOfDates.find(function (o) {
+      return o.count === resultMaxNumber;
+    });
+    console.log(resultObj);
+    resolve(resultObj);
+  });
+  let result = await promise;
+  return result;
+};
+
+const busiestAirport = async (journeys) => {
+  let promise = new Promise((resolve, reject) => {
+    //push the count of the same depair and indepartcode flights to an arrayOfFlights
+    let arrayOfFlights = [];
+    journeys.forEach((el) => {
+      const length = flights.filter((x) => x.depair === el.depair).length;
+      const length2 = flights.filter((x) => x.indepartcode === el.depair)
+        .length;
+      arrayOfFlights.push({
+        depair: el.depair,
+        count: length + length2,
+      });
+    });
+
+    //get the biggest number from the arrayOfFlights
+    var resultMaxNumber = Math.max.apply(
+      Math,
+      arrayOfFlights.map(function (o) {
+        return o.count;
+      })
+    );
+    var resultObj = arrayOfFlights.find(function (o) {
+      return o.count === resultMaxNumber;
+    });
+
+    resolve(resultObj);
   });
   let result = await promise;
   return result;
@@ -192,15 +263,17 @@ router.get("/average-journey-time/:from/:to", function (req, res, next) {
 
   formatTravelTime(journeys)
     .then((result) =>
-      averageTime(result).then((
-        resultAvg //calculate average time and respond with json object
-      ) =>
-        res.json({
-          depair: req.params.from,
-          destair: req.params.to,
-          averagetime: resultAvg,
-        })
-      )
+      averageTime(result)
+        .then((
+          resultAvg //calculate average time and respond with json object
+        ) =>
+          res.json({
+            depair: req.params.from,
+            destair: req.params.to,
+            averagetime: resultAvg,
+          })
+        )
+        .catch((err) => console.log(err))
     )
     .catch((err) => console.log(err));
 });
@@ -225,15 +298,17 @@ router.get("/proportion-business-class/:from/:to", function (req, res, next) {
     return el.depair === from && el.destair === to;
   });
 
-  proportionBusinessClass(journeys).then((result) => {
-    const outOf = journeys.length;
-    let percentage = (result * 100) / outOf;
-    res.json({
-      depair: req.params.from,
-      destair: req.params.to,
-      percentage: percentage,
-    });
-  });
+  proportionBusinessClass(journeys)
+    .then((result) => {
+      const outOf = journeys.length;
+      let percentage = (result * 100) / outOf;
+      res.json({
+        depair: req.params.from,
+        destair: req.params.to,
+        percentage: percentage,
+      });
+    })
+    .catch((err) => console.log(err));
 });
 
 //get percentage of flights that fly to :to
@@ -258,29 +333,24 @@ router.get("/percentage-of-flights/:to", function (req, res, next) {
 router.get("/busiest-day/:from", function (req, res, next) {
   const from = req.params.from.toUpperCase();
 
-  let arrayOfDates = [];
-
   const journeys = flights.filter((el) => {
-    return el.depair === from;
+    return el.depair === from || el.indepartcode === from;
   });
 
-  journeys.forEach((el) => {
-    const length = journeys.filter((x) => x.outdepartdate === el.outdepartdate)
-      .length;
-    arrayOfDates.push({ depair: from, date: el.outdepartdate, count: length });
-  });
-
-  var resultMaxNumber = Math.max.apply(
-    Math,
-    arrayOfDates.map(function (o) {
-      return o.count;
+  busiestDay(journeys)
+    .then((result) => {
+      res.json(result);
     })
-  );
-  var resultObj = arrayOfDates.find(function (o) {
-    return o.count === resultMaxNumber;
-  });
-  console.log(resultMaxNumber);
-  res.json(resultObj);
+    .catch((err) => console.log(err));
+});
+
+//get busiest airport from the dataset
+router.get("/busiest-airport", function (req, res, next) {
+  busiestAirport(flights)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => console.log(err));
 });
 
 /* GET IATA codes */
@@ -302,12 +372,16 @@ module.exports = router;
 //   outArrivalDate.concat(outArrivalTime)
 // ).format("DD/MM/YYYY HH:mm:ss");
 
+// //Create iata codes from flights database
 // const createIataCodes = () => {
 //   let iataCodes = [];
 
 //   flights.forEach((el) => {
 //     if (!iataCodes.includes(el.depair)) iataCodes.push(el.depair);
+//     if (!iataCodes.includes(el.destair)) iataCodes.push(el.destair);
 //   });
 //   let data = JSON.stringify(iataCodes);
 //   fs.writeFileSync("./resources/IATA.json", data);
 // };
+
+// createIataCodes();
