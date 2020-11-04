@@ -11,6 +11,9 @@ export default function App() {
   const [busiestDay, setBusiestDay] = useState();
   const [businessPercentage, setBusinessPercentage] = useState(null);
   const [percentageFlights, setPercentageFlights] = useState(null);
+  const [percentageFlightsDest, setPercentageFlightsDest] = useState("DXB");
+  const [busiestAirportObj, setBusiestAirportObj] = useState();
+  const [buttonDisabled, setButtonDisabled] = useState(true);
   const [from, setFrom] = useState("LHR");
   const [to, setTo] = useState("DXB");
   const [iata, setIata] = useState([]);
@@ -19,99 +22,111 @@ export default function App() {
     this.setState({ value: event.target.value });
   };
 
-  const busiestAirportDay = () => {
-    axios
-      .get(`${global.BASE_URL}/api/flights/busiest-day/${from.toUpperCase()}`)
-      .then((res) => {
-        console.log(res);
-        setBusiestDay(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  const busiestAirport = async () => {
+    let result = await axios.get(
+      `${global.BASE_URL}/api/flights/busiest-airport`
+    );
+    return result;
   };
 
-  const percentageFlightsTo = () => {
-    axios
-      .get(
-        `${
-          global.BASE_URL
-        }/api/flights/percentage-of-flights/${to.toUpperCase()}`
-      )
-      .then((res) => {
-        if (res.data.percentagetotalflights % 1 !== 0) {
-          setPercentageFlights(res.data.percentagetotalflights.toFixed(2));
-        } else setPercentageFlights(res.data.percentagetotalflights.toFixed(0));
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  const busiestAirportDay = async () => {
+    let result = await axios.get(
+      `${global.BASE_URL}/api/flights/busiest-day/${from.toUpperCase()}`
+    );
+    return result;
   };
 
-  const proportionBusinessClass = () => {
-    axios
-      .get(
-        `${
-          global.BASE_URL
-        }/api/flights/proportion-business-class/${from.toUpperCase()}/${to.toUpperCase()}`
-      )
-      .then((res) => {
-        if (res.data.percentage % 1 !== 0) {
-          setBusinessPercentage(res.data.percentage.toFixed(2));
-        } else if (res.data.percentage !== null)
-          setBusinessPercentage(res.data.percentage.toFixed(0));
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  const percentageFlightsTo = async () => {
+    let result = await axios.get(
+      `${global.BASE_URL}/api/flights/percentage-of-flights/${to.toUpperCase()}`
+    );
+    return result;
   };
 
-  const avgJourneyTime = () => {
-    axios
-      .get(
-        `${
-          global.BASE_URL
-        }/api/flights/average-journey-time/${from.toUpperCase()}/${to.toUpperCase()}`
-      )
-      .then((res) => {
-        setAvgTime(res.data.averagetime);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  const proportionBusinessClass = async () => {
+    let result = await axios.get(
+      `${
+        global.BASE_URL
+      }/api/flights/proportion-business-class/${from.toUpperCase()}/${to.toUpperCase()}`
+    );
+    return result;
   };
 
-  const checkFlights = () => {
-    axios
-      .get(
-        `${
-          global.BASE_URL
-        }/api/flights/travel-time/${from.toUpperCase()}/${to.toUpperCase()}`
-      )
-      .then((res) => {
-        avgJourneyTime();
-        proportionBusinessClass();
-        percentageFlightsTo();
-        busiestAirportDay();
-        setFlights(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
+  const avgJourneyTime = async () => {
+    let result = await axios.get(
+      `${
+        global.BASE_URL
+      }/api/flights/average-journey-time/${from.toUpperCase()}/${to.toUpperCase()}`
+    );
+
+    return result;
+  };
+
+  const checkFlights = async () => {
+    let result = await axios.get(
+      `${
+        global.BASE_URL
+      }/api/flights/travel-time/${from.toUpperCase()}/${to.toUpperCase()}`
+    );
+    return result;
+  };
+
+  const getIata = async () => {
+    let result = await axios.get(`${global.BASE_URL}/api/flights/iata`);
+
+    return result;
+  };
+
+  const callAll = () => {
+    setFlights([]);
+    setAvgTime(null);
+    setBusiestDay();
+    setBusinessPercentage(null);
+    setPercentageFlights(null);
+    setBusiestAirportObj();
+    setButtonDisabled(true);
+
+    checkFlights().then((resFlights) => {
+      setFlights(resFlights.data);
+
+      avgJourneyTime().then((resAvg) => {
+        setAvgTime(resAvg.data.averagetime);
+        busiestAirportDay().then((resBusyDay) => {
+          setBusiestDay(resBusyDay.data);
+
+          proportionBusinessClass().then((resBusClass) => {
+            if (resBusClass.data.percentage % 1 !== 0) {
+              setBusinessPercentage(resBusClass.data.percentage.toFixed(2));
+            } else if (resBusClass.data.percentage !== null)
+              setBusinessPercentage(resBusClass.data.percentage.toFixed(0));
+
+            percentageFlightsTo().then((resPercFlightsTo) => {
+              if (resPercFlightsTo.data.percentagetotalflights % 1 !== 0) {
+                setPercentageFlights(
+                  resPercFlightsTo.data.percentagetotalflights.toFixed(2)
+                );
+              } else
+                setPercentageFlights(
+                  resPercFlightsTo.data.percentagetotalflights.toFixed(0)
+                );
+              setPercentageFlightsDest(resPercFlightsTo.data.destair);
+
+              busiestAirport().then((resBusAir) => {
+                setBusiestAirportObj(resBusAir.data);
+                setButtonDisabled(false);
+              });
+            });
+          });
+        });
       });
+    });
   };
 
   useEffect(() => {
-    axios
-      .get(`${global.BASE_URL}/api/flights/iata`)
-      .then((res) => {
-        setFrom(res.data.find((el) => el === "LHR"));
-        setTo(res.data.find((el) => el === "DXB"));
-        setIata(res.data);
-        checkFlights();
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    getIata().then((resIata) => {
+      setIata(resIata.data);
+      callAll();
+    });
   }, []);
 
   return (
@@ -152,9 +167,13 @@ export default function App() {
             </select>
           </div>
         </div>
-        <a className="btn btn-lg" onClick={checkFlights}>
-          FIND FLIGHTS
-        </a>
+        <button
+          className="btn btn-lg"
+          disabled={buttonDisabled}
+          onClick={callAll}
+        >
+          {buttonDisabled ? "LOADING" : "FIND FLIGHTS"}
+        </button>
         {avgTime !== null && flights.length ? (
           <h4>
             1. Average journey time from {flights[0].depair} to{" "}
@@ -163,27 +182,46 @@ export default function App() {
               .utc(moment.duration(avgTime, "minutes").asMilliseconds())
               .format("HH:mm")}
           </h4>
-        ) : null}
-        {busiestDay !== null && flights.length ? (
+        ) : (
+          <h4>1. Loading...</h4>
+        )}
+        {busiestDay && flights.length ? (
           <h4>
             2. {busiestDay.date} has the most departures from{" "}
             {busiestDay.depair}
             <b style={{ fontSize: "1.3em" }}> - {busiestDay.count}</b>
           </h4>
-        ) : null}
+        ) : (
+          <h4>2. Loading...</h4>
+        )}
         {businessPercentage !== null && flights.length ? (
           <h4>
             3. <b style={{ fontSize: "1.3em" }}>{businessPercentage}%</b> of
             flights in this search are business class
           </h4>
-        ) : null}
+        ) : (
+          <h4>3. Loading...</h4>
+        )}
         {percentageFlights !== null ? (
           <h4>
             4. From a total set of flights{" "}
             <b style={{ fontSize: "1.3em" }}>{percentageFlights}%</b> flies to{" "}
-            {to}
+            {percentageFlightsDest}
           </h4>
-        ) : null}
+        ) : (
+          <h4>4. Loading...</h4>
+        )}
+        {busiestAirportObj ? (
+          <h4>
+            5. Busiest airport from a total set is{" "}
+            <b style={{ fontSize: "1.3em" }}>{busiestAirportObj.depair}</b> with
+            a total of{" "}
+            <b style={{ fontSize: "1.3em" }}>{busiestAirportObj.count}</b>{" "}
+            flights
+          </h4>
+        ) : (
+          <h4>5. Loading...</h4>
+        )}
 
         {flights.length > 0 ? (
           <Table data={flights} />
