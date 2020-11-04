@@ -11,12 +11,12 @@ Requirements: (node JS, NPM)
 Language: JavaScript
 Time spent: about 9 hours
 Packages used:
--	Server
+ 	Server
   -	Express
   -	Fast-csv
   -	Moment/Moment-timezone
   -	Concurrently
--	Client
+	Client
   -	React
   -	Bootstrap
   -	Moment
