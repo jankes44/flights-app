@@ -8,15 +8,27 @@ import moment from "moment";
 export default function App() {
   const [flights, setFlights] = useState([]);
   const [avgTime, setAvgTime] = useState(null);
+  const [busiestDay, setBusiestDay] = useState();
   const [businessPercentage, setBusinessPercentage] = useState(null);
   const [percentageFlights, setPercentageFlights] = useState(null);
   const [from, setFrom] = useState("LHR");
   const [to, setTo] = useState("DXB");
   const [iata, setIata] = useState([]);
-  const [flightsCalled, setFlightsCalled] = useState(false);
 
   const handleChange = (event) => {
     this.setState({ value: event.target.value });
+  };
+
+  const busiestAirportDay = () => {
+    axios
+      .get(`${global.BASE_URL}/api/flights/busiest-day/${from.toUpperCase()}`)
+      .then((res) => {
+        console.log(res);
+        setBusiestDay(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const percentageFlightsTo = () => {
@@ -80,8 +92,8 @@ export default function App() {
         avgJourneyTime();
         proportionBusinessClass();
         percentageFlightsTo();
+        busiestAirportDay();
         setFlights(res.data);
-        setFlightsCalled(true);
       })
       .catch((err) => {
         console.error(err);
@@ -150,6 +162,13 @@ export default function App() {
             {moment
               .utc(moment.duration(avgTime, "minutes").asMilliseconds())
               .format("HH:mm")}
+          </h4>
+        ) : null}
+        {busiestDay !== null && flights.length ? (
+          <h4>
+            2. {busiestDay.date} has the most departures from{" "}
+            {busiestDay.depair}
+            <b style={{ fontSize: "1.3em" }}> - {busiestDay.count}</b>
           </h4>
         ) : null}
         {businessPercentage !== null && flights.length ? (

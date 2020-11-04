@@ -5,7 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.css";
 
-global.BASE_URL = "http://localhost:5000";
+global.BASE_URL = "http://localhost:5001";
 
 ReactDOM.render(
   <React.StrictMode>

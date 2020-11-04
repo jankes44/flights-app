@@ -33,8 +33,6 @@ const csvToJson = function () {
     });
 };
 
-csvToJson();
-
 /* 
   Formatter function - takes in array of flights, formats depart and arrival times and calculates
   the duration of the flight - taking care of timezones
@@ -238,7 +236,7 @@ router.get("/proportion-business-class/:from/:to", function (req, res, next) {
   });
 });
 
-//get proportion of flights which are business class
+//get percentage of flights that fly to :to
 router.get("/percentage-of-flights/:to", function (req, res, next) {
   const to = req.params.to.toUpperCase();
 
@@ -256,13 +254,42 @@ router.get("/percentage-of-flights/:to", function (req, res, next) {
   });
 });
 
+//get busiest day :from
+router.get("/busiest-day/:from", function (req, res, next) {
+  const from = req.params.from.toUpperCase();
+
+  let arrayOfDates = [];
+
+  const journeys = flights.filter((el) => {
+    return el.depair === from;
+  });
+
+  journeys.forEach((el) => {
+    const length = journeys.filter((x) => x.outdepartdate === el.outdepartdate)
+      .length;
+    arrayOfDates.push({ depair: from, date: el.outdepartdate, count: length });
+  });
+
+  var resultMaxNumber = Math.max.apply(
+    Math,
+    arrayOfDates.map(function (o) {
+      return o.count;
+    })
+  );
+  var resultObj = arrayOfDates.find(function (o) {
+    return o.count === resultMaxNumber;
+  });
+  console.log(resultMaxNumber);
+  res.json(resultObj);
+});
+
 /* GET IATA codes */
 router.get("/iata", function (req, res, next) {
   res.json(iata);
 });
 
 module.exports = router;
-
+//TODO
 // let outDepartDate = el.outdepartdate + " ";
 // let outDepartTime = el.outdeparttime;
 // let departDateTime = moment(outDepartDate.concat(outDepartTime)).format(
