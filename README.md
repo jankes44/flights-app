@@ -7,6 +7,7 @@ Requirements: (node JS, NPM)
 1.	Clone the repository (or download the files)
 2.	In /flights-app/ run: ‘npm run install-deps’ and wait until finished (might take a moment)
 3.	In /flights-app/ run: ‘npm run demo’
+4.  In your browser go to localhost:3210
 
 Language: JavaScript
 Time spent: about 9 hours\
