@@ -9,7 +9,7 @@
     "install-deps": "npm run server-dependencies && npm install -g serve",
     "client": "npm start --prefix client",
     "server": "node ./bin/www",
-    "demo": "concurrently \"serve -s build \" \"npm run server\""
+    "demo": "concurrently \"serve -l 3210 -s build \" \"npm run server\""
   },
   "dependencies": {
     "concurrently": "^5.3.0",
