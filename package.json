@@ -1,15 +1,15 @@
 {
   "name": "flight-api",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "dev": "nodemon --ext js ./bin/www",
     "server-dependencies": "npm install",
     "client-dependencies": "npm install --prefix client",
-    "install-deps": "npm run server-dependencies && npm run client-dependencies",
+    "install-deps": "npm run server-dependencies && npm install -g serve",
     "client": "npm start --prefix client",
     "server": "node ./bin/www",
-    "demo": "concurrently \"npm run client\" \"npm run server\""
+    "demo": "concurrently \"serve -s build \" \"npm run server\""
   },
   "dependencies": {
     "concurrently": "^5.3.0",
