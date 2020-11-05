@@ -42,6 +42,4 @@ This quick technical test was pretty enjoyable. I tried new things which I did n
 2 time zones and telling a difference between them, this was the most challenging for me to be honest, it took me a moment to figure it where to 
 get time zones data from, then parse it with existing data and calculate the difference between the departure times and arrival times in a correct way 
 taking the time zones into consideration. At the end I believe I met the requirements and I will be happy to hear any sort of feedback from you. 
-Thank you for the opportunity and hopefully I will hear from you soon.
-Kind regards,
-Jarek
+Thank you for the opportunity.
